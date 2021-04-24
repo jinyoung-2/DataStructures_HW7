@@ -9,9 +9,6 @@
  *
  */
 
-
-/*반환값 다시 과제코드 보고 반드시 수정하기!!!!!! */
-
 #include<stdio.h>
 #include<stdlib.h>
 /* 필요한 헤더파일 추가 if necessary */
@@ -206,14 +203,15 @@ int insertNode(headNode* h, int key) {
 			newnode->rlink=h->first;	//newnode의 rlink가 헤드노드를 가리키도록 설정
 			h->first->llink=newnode;	//헤드노드의 llink가 newnode를 가리키도록 설정
 			h->first=newnode;			//헤드포인터를 newnode포인터로 설정(헤드노드를 newnode로 변경)
+			return 0;
 		}
 		//입력받은 key가 헤드노드의 데이터보다 작거나 같을때, newnode를 맨 뒤에 삽입 
 		else
 		{
 			newnode->llink=h->first;	//newnode의 llink가 헤드노드를 가리키도록 설정
 			h->first->rlink=newnode;	//헤드노드의 rlink가 newnode를 가리키도록 설정
+			return 0;
 		}
-		return 0;
 	}
 
 	//노드가 2개이상일 때
@@ -318,6 +316,7 @@ int insertFirst(headNode* h, int key) {
 	if(h->first==NULL) 
 	{
 		h->first=newnode;  //Q. 맞나?
+		return 0;
 	}
 	
 	//노드가 존재할 때
@@ -325,8 +324,8 @@ int insertFirst(headNode* h, int key) {
 	{
 		h->first->rlink=newnode; 	//Q. 맞나?
 		newnode->llink=h->first;	//Q. 맞나? 
+		return 0;
 	}
-	return 0;
 }
 
 
@@ -360,7 +359,7 @@ int deleteNode(headNode* h, int key) {
 		{
 			h->first=NULL; //헤드노드포인터를 NULL로 설정(리스트에 노드가 존재하지 않은 상태)   Q. 맞나?
 			free(deleted); //노드 삭제(메모리 해제)
-			return 0;
+			return 1;
 		}
 	}
 
@@ -383,7 +382,7 @@ int deleteNode(headNode* h, int key) {
 					h->first=h->first->rlink; //헤드노드를 다음노드로 변경 
 					h->first->llink=NULL; 
 					free(deleted);			//노드 삭제(메모리 해제)
-					return 0;
+					return 1;
 				}
 				//2. 중간노드가 key에 대한 노드일 때
 				else
@@ -391,7 +390,7 @@ int deleteNode(headNode* h, int key) {
 					deleted->llink->rlink=deleted->rlink;
 					deleted->rlink->llink=deleted->llink;
 					free(deleted);	//노드 삭제(메모리 해제)
-					return 0;
+					return 1;
 				}
 			}
 			//key에 대한 노드가 아닐 때
@@ -404,7 +403,7 @@ int deleteNode(headNode* h, int key) {
 		{
 			deleted->llink->rlink=NULL;
 			free(deleted);	//노드 삭제(메모리 해제)
-			return 0;
+			return 1;
 		}
 		//key에 대한 노드가 존재하지 않을 때
 		else
@@ -492,7 +491,41 @@ int deleteFirst(headNode* h) {
  * 리스트의 링크를 역순으로 재 배치
  */
 int invertList(headNode* h) {
+	listNode* tail=h->first;
+	listNode* lead=h->first->rlink;  //listNode* lead=tail->rlink;
 
-	return 0;
+
+	//노드가 없을 때와 노드가 1개일 때는 역순으로 재배치할 노드가 없음(기존과 동일한 순서)
+	if(((h->first)==NULL)||((h->first->rlink)==NULL))
+	{
+		return -1;
+	}
+	
+	//노드가 2개 이상일 때
+	else
+	{
+		// while(tail)
+		// {
+		// 	tail->rlink=tail->llink;
+		// 	tail->llink=lead;
+			 
+		// 	tail=lead;
+		// 	lead=lead->rlink; 
+		// }
+		// h->first=tail->llink;
+
+		while(lead)
+		{
+			tail->rlink=tail->llink;
+			tail->llink=lead;
+			 
+			tail=lead;
+			lead=lead->rlink; 
+		}
+		//마지막 노드일 때 
+		tail->rlink=tail->llink;
+		tail->llink=lead;
+		h->first=tail;   //헤드노드 재설정 
+		return 0;
+	}
 }
-
