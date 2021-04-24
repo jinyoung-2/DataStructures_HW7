@@ -116,16 +116,6 @@ int main()
 	return 1;
 }
 
-// /* note: initialize는 이중포인터를 매개변수로 받음
-//          singly-linked-list의 initialize와 차이점을 이해 할것 */
-// int initialize(headNode** h);
-
-// /* note: freeList는 싱글포인터를 매개변수로 받음
-//         - initialize와 왜 다른지 이해 할것
-//         - 이중포인터를 매개변수로 받아도 해제할 수 있을 것 */
-// int freeList(headNode* h);
-
-
 /*initialize에서 이중포인터를 매개변수로 받는 이유는 ~~~~~이다!! */
 int initialize(headNode** h) {
 
@@ -138,6 +128,7 @@ int initialize(headNode** h) {
 	*h=NULL;
 	return 1;
 }
+
 
 /*freeList에서 싱글포인터를 매개변수로 받은 이유는 h를 변경할 필요가 없기 때문이다.*/
 int freeList(headNode* h){
@@ -175,7 +166,6 @@ void printList(headNode* h) {
 
 	printf("  items = %d\n", i);
 }
-
 
 
 /* 리스트를 검색하여, 입력받은 key보다 큰값이 나오는 노드 바로 앞에 삽입 */
@@ -254,7 +244,6 @@ int insertNode(headNode* h, int key) {
 		}
 	}
 }
-
 
 
 /**
@@ -484,7 +473,6 @@ int deleteFirst(headNode* h) {
 		return 0;
 	}
 }
-
 
 
 /**
