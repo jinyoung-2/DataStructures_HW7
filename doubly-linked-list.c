@@ -11,7 +11,6 @@
 
 #include<stdio.h>
 #include<stdlib.h>
-/* 필요한 헤더파일 추가 if necessary */
 
 typedef struct Node {
 	int key;
@@ -43,7 +42,6 @@ int deleteFirst(headNode* h);
 int invertList(headNode* h);
 
 void printList(headNode* h);
-
 
 int main()
 {
@@ -116,46 +114,54 @@ int main()
 	return 1;
 }
 
-/*initialize에서 이중포인터를 매개변수로 받는 이유는 ~~~~~이다!! */
+
+/*initialize에서 이중포인터를 매개변수로 받는 이유는 h가 가리키는 *h의 값을 동적할당하는 등 직접 변경하기 위해서이다.
+singly-linked-list의 initialize에서는 h값을 변경할 필요가 없어 싱글포인터를 매개변수로 받는다. 
+대신, 새로운 headNode형 단일포인터를 생성하고 메모리를 할당한 후, 그 단일포인터를 반환한다. */
 int initialize(headNode** h) {
 
 	//리스트 자체가 존재하면
-	if(*h!=NULL)   
+	if(*h!=NULL)    
 		freeList(*h);
 
-	//리스트 자체가 존재하지 않을 때 리스트 생성하기 
+	//헤드노드 메모리 할당 
 	*h=(headNode*)malloc(sizeof(headNode));
-	*h=NULL;
+	(*h)->first=NULL;
 	return 1;
 }
 
 
-/*freeList에서 싱글포인터를 매개변수로 받은 이유는 h를 변경할 필요가 없기 때문이다.*/
+/*freeList에서 싱글포인터를 매개변수로 받은 이유는 initialize와 달리 h를 동적할당하는 등 변경할 필요가 없기 때문이다.*/
 int freeList(headNode* h){
 	listNode* p=h->first;
 
 	//헤드노드가 존재하면, 메모리 해제하기
-	while(p!=NULL)
+	while(p->rlink!=NULL)
 	{	
 		p=p->rlink;
 		free(p->llink);		//이전 노드 메모리 해제 
 	}
-	free(h);   //헤드노드 메모리 해제   Q. free(h)를 하면, h->first=NULL인 상태가 되는건가?
+	//p가 마지막노드일 때
+	free(p);	//마지막노드 메모리 해제 
+	free(h);    //헤드노드 메모리 해제    
 	return 0;
 }
 
 
+/* 리스트 출력하는 함수 */
 void printList(headNode* h) {
 	int i = 0;
 	listNode* p;
 
 	printf("\n---PRINT\n");
 
+	//노드가 없을 경우 
 	if(h == NULL) {
 		printf("Nothing to print....\n");
 		return;
 	}
 
+	//노드가 있을 경우, 모든 노드의 값 출력 
 	p = h->first;
 
 	while(p != NULL) {
@@ -179,7 +185,7 @@ int insertNode(headNode* h, int key) {
 	//노드가 존재하지 않을 때   
 	if(h->first==NULL) 
 	{
-		h->first=newnode;  //Q. 맞나?
+		h->first=newnode; 	//새로운 노드를 헤드노드로 설정 
 		return 0;
 	}
 	
@@ -187,7 +193,6 @@ int insertNode(headNode* h, int key) {
 	else if(h->first->rlink==NULL)
 	{
 		//입력받은 key보다 헤드노드의 데이터가 더 클 때, newnode를 맨 앞에 삽입
-		//Q. 헤드노드의 rlink가 NULL을 가리키고 있겠지??? 따로 NULL이라고 설정 안 해줘도 괜찮겠지?
 		if((h->first->key)>key) 
 		{
 			newnode->rlink=h->first;	//newnode의 rlink가 헤드노드를 가리키도록 설정
@@ -215,32 +220,39 @@ int insertNode(headNode* h, int key) {
 			h->first=newnode;			//헤드포인터를 newnode포인터로 설정(헤드노드를 newnode로 변경)
 			return 0;
 		}
-		//마지막노드의 값이 key보다 클 때 
 		else
 		{
-			listNode* p=h->first;   //Q. 메모리 해제를 해줘야 하나? 그건 안 되지 않나???
-			while(p!=NULL)
+			listNode* p=h->first;   
+			while((p->rlink)!=NULL)
 			{
 				//중간에 노드의 값이 key보다 클 때 
 				if((p->key)>key)
 				{
-
-					//Q. 순서 맞는지 확인하기!! 
+					newnode->rlink=p;
 					newnode->llink=p->llink;
 					p->llink->rlink=newnode;
-					newnode->rlink=p;
 					p->llink=newnode;
 					return 0;
 				}
 				else
-				{
 					p=p->rlink;  //조건에 해당되지 않으면, p는 다음노드를 가리키도록 설정
-				}
 			}
+			//p가 마지막 노드일 때 
 			//key보다 큰 노드가 존재하지 않을 때->맨 뒤에 newnode삽입 
-			newnode->llink=p->llink;	
-			p->llink->rlink=newnode;
-			return 0;
+			if(key>(p->key)) 
+			{
+				newnode->llink=p;	
+				p->rlink=newnode;
+				return 0;
+			}  
+			else
+			{
+				newnode->rlink=p;
+				newnode->llink=p->llink;
+				p->llink->rlink=newnode;
+				p->llink=newnode;
+				return 0;
+			}
 		}
 	}
 }
@@ -257,27 +269,25 @@ int insertLast(headNode* h, int key) {
 	newnode->llink=NULL;
 
 	
-	//노드가 존재하지 않을 때   /*완전 어려움!! 여기 생각해보기,*/
+	//노드가 존재하지 않을 때  
 	if(h->first==NULL) 
 	{
-		h->first=newnode;  //Q. 맞나?
-		/* h->first->llink=NULL;
-			h->first->rlink=NULL;로 설정해줘야 하나?*/
+		h->first=newnode;  	//헤드노드를 newnode로 설정
 		return 0;
 	}
 	
 	//노드가 1개일 때 
 	else if(h->first->rlink==NULL)
 	{
-		newnode->llink=h->first; //Q. 맞나?
-		h->first->rlink=newnode; //Q. 맞나?
+		newnode->llink=h->first; 
+		h->first->rlink=newnode; 
 		return 0;
 	}
 
 	//노드가 2개이상일 때 
 	else
 	{
-		listNode* p=h->first;   //Q. 메모리 해제를 해줘야 하나? 그건 안 되지 않나???
+		listNode* p=h->first;   
 		//p가 마지막노드를 가리키지 전까지 반복
 		while(p->rlink!=NULL)
 		{
@@ -301,18 +311,19 @@ int insertFirst(headNode* h, int key) {
 	newnode->rlink=NULL;
 	newnode->llink=NULL;
 
-	//노드가 존재하지 않을 때   /*완전 어려움!! 여기 생각해보기,*/
+	//노드가 존재하지 않을 때  
 	if(h->first==NULL) 
 	{
-		h->first=newnode;  //Q. 맞나?
+		h->first=newnode;  	//헤드노드를 newnode로 설정 
 		return 0;
 	}
 	
 	//노드가 존재할 때
 	else
 	{
-		h->first->rlink=newnode; 	//Q. 맞나?
-		newnode->llink=h->first;	//Q. 맞나? 
+		h->first->llink=newnode;
+		newnode->rlink=h->first;
+		h->first=newnode; 	//헤드노드를 newnode로 설정 
 		return 0;
 	}
 }
@@ -322,7 +333,6 @@ int insertFirst(headNode* h, int key) {
  * list에서 key에 대한 노드 삭제
  */
 int deleteNode(headNode* h, int key) {
-	//key값이 존재하지 않을 때도 고려하기!!
 
 	listNode* deleted=NULL;		//삭제할 노드를 가리키는 포인터 생성
 	deleted=h->first;			//삭제할 노드를 헤드노드로 설정 
@@ -338,7 +348,7 @@ int deleteNode(headNode* h, int key) {
 	else if(h->first->rlink==NULL)
 	{
 		//key에 대한 노드 존재하지 않을 때
-		if((h->first->key)!=key)  //Q.deleted->key!=key와 동일?
+		if((h->first->key)!=key)  
 		{
 			printf("ERROR: There is no node to remove.\n");
 			return -1;
@@ -346,27 +356,27 @@ int deleteNode(headNode* h, int key) {
 		//key에 대한 노드 존재할 때
 		else
 		{
-			h->first=NULL; //헤드노드포인터를 NULL로 설정(리스트에 노드가 존재하지 않은 상태)   Q. 맞나?
+			h->first=NULL; //헤드노드포인터를 NULL로 설정(리스트에 노드가 존재하지 않은 상태)  
 			free(deleted); //노드 삭제(메모리 해제)
 			return 1;
 		}
 	}
 
-	//노드가 2개이상일 때
-			/* key에 대한 노드가 존재할 때
+	/*노드가 2개이상일 때
+		-key에 대한 노드가 존재할 때
 			1. 처음노드가 key에 대한 노드일 때
 			2. 중간노드가 key에 대한 노드일 때
 			3. 마지막노드가 key에 대한 노드일 때 
-				key에 대한 노드가 존재하지 않을 때*/
+		-key에 대한 노드가 존재하지 않을 때*/
 	else
 	{
 		//노드가 존재할 때까지 반복 
-		while(deleted->rlink=NULL)
+		while((deleted->rlink)!=NULL)
 		{
-			if(deleted->key==key)
+			if((deleted->key)==key)
 			{
 				//1. 처음노드가 key에 대한 노드일 때
-				if(deleted==h->first)
+				if(deleted==(h->first))
 				{
 					h->first=h->first->rlink; //헤드노드를 다음노드로 변경 
 					h->first->llink=NULL; 
@@ -386,7 +396,7 @@ int deleteNode(headNode* h, int key) {
 			else	
 				deleted=deleted->rlink;  //삭제할 노드를 다음노드로 변경 
 		}
-
+		//마지막노드일때
 		//3. 마지막노드가 key에 대한 노드일 때
 		if(deleted->key==key)
 		{
@@ -394,7 +404,7 @@ int deleteNode(headNode* h, int key) {
 			free(deleted);	//노드 삭제(메모리 해제)
 			return 1;
 		}
-		//key에 대한 노드가 존재하지 않을 때
+		//key에 대한 노드가 존재하지 않을 때 -> 삭제할 노드가 존재하지 않으므로 에러 발생
 		else
 		{
 			printf("ERROR: There is no node to remove.\n");
@@ -421,7 +431,7 @@ int deleteLast(headNode* h) {
 	//노드가 1개 존재할 때
 	else if(h->first->rlink==NULL)
 	{
-		h->first=NULL; //헤드노드포인터를 NULL로 설정(리스트에 노드가 존재하지 않은 상태)   Q. 맞나?
+		h->first=NULL; //헤드노드포인터를 NULL로 설정(리스트에 노드가 존재하지 않은 상태)  
 		free(deleted); //노드 삭제(메모리 해제)
 		return 0;
 	}
@@ -459,15 +469,15 @@ int deleteFirst(headNode* h) {
 	//노드가 1개 존재할 때
 	else if(h->first->rlink==NULL)
 	{
-		h->first=NULL; //헤드노드포인터를 NULL로 설정(리스트에 노드가 존재하지 않은 상태)   Q. 맞나?
+		h->first=NULL; //헤드노드포인터를 NULL로 설정(리스트에 노드가 존재하지 않은 상태)   
 		free(deleted); //노드 삭제(메모리 해제)
 		return 0;
 	}
 
 	//노드가 2개 이상 존재할 때
-	else  //Q. 맞나?
+	else  
 	{
-		h->first=h->first->rlink;  //헤드노드를 다음노드로 변경   //Q. h->first=deleted->rlink;와ㅏ 동일?
+		h->first=h->first->rlink;  //헤드노드를 다음노드로 변경   
 		h->first->llink=NULL; //헤드노드의 llink는 NULL로 설정 
 		free(deleted);  //노드 삭제(메모리 해제)
 		return 0;
@@ -479,41 +489,30 @@ int deleteFirst(headNode* h) {
  * 리스트의 링크를 역순으로 재 배치
  */
 int invertList(headNode* h) {
+	//listNode형 포인터 2개 필요(이유: 하나만 존재시, 연속적으로 역순으로 재배치가 불가능하다.)
 	listNode* tail=h->first;
-	listNode* lead=h->first->rlink;  //listNode* lead=tail->rlink;
+	listNode* lead=h->first->rlink;  
 
 
 	//노드가 없을 때와 노드가 1개일 때는 역순으로 재배치할 노드가 없음(기존과 동일한 순서)
 	if(((h->first)==NULL)||((h->first->rlink)==NULL))
-	{
 		return -1;
-	}
 	
 	//노드가 2개 이상일 때
 	else
 	{
-		// while(tail)
-		// {
-		// 	tail->rlink=tail->llink;
-		// 	tail->llink=lead;
-			 
-		// 	tail=lead;
-		// 	lead=lead->rlink; 
-		// }
-		// h->first=tail->llink;
-
 		while(lead)
 		{
-			tail->rlink=tail->llink;
-			tail->llink=lead;
+			tail->rlink=tail->llink;	//tail의 rlink가 가리키는 주소를 tail의 llink가 가리키는 주소로 변경
+			tail->llink=lead;			//tail의 llink가 가리키는 주소를 다음노드의 주소로 변경 
 			 
-			tail=lead;
-			lead=lead->rlink; 
+			tail=lead;			//tail을 다음노드로 변경 
+			lead=lead->rlink; 	//lead를 다음노드로 변경
 		}
 		//마지막 노드일 때 
 		tail->rlink=tail->llink;
 		tail->llink=lead;
-		h->first=tail;   //헤드노드 재설정 
+		h->first=tail;   		//헤드노드 재설정 
 		return 0;
 	}
 }
