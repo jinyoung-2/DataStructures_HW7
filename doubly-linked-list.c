@@ -12,9 +12,10 @@
 #include<stdio.h>
 #include<stdlib.h>
 
+/* 이중 연결 리스트 특성상 노드포인터가 2개가 필요하다. */
 typedef struct Node {
 	int key;
-	struct Node* llink;
+	struct Node* llink;		
 	struct Node* rlink;
 } listNode;
 
@@ -120,7 +121,7 @@ singly-linked-list의 initialize에서는 h값을 변경할 필요가 없어 싱
 대신, 새로운 headNode형 단일포인터를 생성하고 메모리를 할당한 후, 그 단일포인터를 반환한다. */
 int initialize(headNode** h) {
 
-	//리스트 자체가 존재하면
+	//리스트에 노드가 존재할 시, 해제하기 
 	if(*h!=NULL)    
 		freeList(*h);
 
@@ -228,6 +229,7 @@ int insertNode(headNode* h, int key) {
 				//중간에 노드의 값이 key보다 클 때 
 				if((p->key)>key)
 				{
+					//중간에 노드 삽입하는 과정 
 					newnode->rlink=p;
 					newnode->llink=p->llink;
 					p->llink->rlink=newnode;
@@ -247,6 +249,7 @@ int insertNode(headNode* h, int key) {
 			}  
 			else
 			{
+				//중간에 노드 삽입하는 과정
 				newnode->rlink=p;
 				newnode->llink=p->llink;
 				p->llink->rlink=newnode;
